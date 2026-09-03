@@ -1,0 +1,97 @@
+[
+  {
+    "question": "Can ChargeOne 11 provide standard charging without EnergyHub?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-003"],
+    "required_authoritative_source": "SRC-003",
+    "expected_evidence": ["standard charging", "without EnergyHub"]
+  },
+  {
+    "question": "What is required for PV-surplus charging with ChargeOne 11?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-003", "SRC-004"],
+    "expected_evidence": ["PV-surplus charging", "required metering data", "PV-generation data"]
+  },
+  {
+    "question": "What must be checked when adding a HomeCell battery to an existing installation?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-002"],
+    "required_authoritative_source": "SRC-002",
+    "expected_evidence": ["verify the inverter firmware version", "wiring and metering requirements"]
+  },
+  {
+    "question": "What is the recommended commissioning sequence for a retrofit HomeCell battery installation?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-002"],
+    "required_authoritative_source": "SRC-002",
+    "expected_evidence": ["Verify product compatibility", "update inverter firmware", "Complete battery commissioning"]
+  },
+  {
+    "question": "What data must EnergyHub receive before coordinated charging is activated?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-004"],
+    "required_authoritative_source": "SRC-004",
+    "expected_evidence": ["valid household meter data", "valid PV-generation data"]
+  },
+  {
+    "question": "Does loss of communication with EnergyHub stop basic charging?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-003", "SRC-004"],
+    "expected_evidence": ["does not prevent basic charging", "coordinated functions may become unavailable"]
+  },
+  {
+    "question": "Can EnergyHub override product-level compatibility rules?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-004"],
+    "required_authoritative_source": "SRC-004",
+    "expected_evidence": ["does not", "override product-level compatibility rules"]
+  },
+  {
+    "question": "What are the warranty conditions for an unauthorized third-party modification?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-005"],
+    "required_authoritative_source": "SRC-005",
+    "expected_evidence": ["Unauthorized modifications", "must not be assumed", "authoritative review"]
+  },
+  {
+    "question": "Do unsupported third-party integrations affect warranty eligibility?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-005"],
+    "required_authoritative_source": "SRC-005",
+    "expected_evidence": ["Unsupported third-party equipment", "may affect warranty eligibility", "must not be assumed to be covered"]
+  },
+  {
+    "question": "If warranty applicability cannot be determined from the documents, what should happen?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-005"],
+    "required_authoritative_source": "SRC-005",
+    "expected_evidence": ["escalated for authoritative review", "should abstain"]
+  },
+  {
+    "question": "Ist HomeCell 15 mit VE Hybrid 8 kompatibel?",
+    "expected_route": "structured_lookup",
+    "expected_sources": ["SRC-001"],
+    "required_authoritative_source": "SRC-001",
+    "expected_evidence": ["HomeCell 15", "VE Hybrid 8", "min firmware"]
+  },
+  {
+    "question": "What firmware is required for VE Hybrid 8 with HomeCell 15 in Germany?",
+    "expected_route": "structured_lookup",
+    "expected_sources": ["SRC-001"],
+    "required_authoritative_source": "SRC-001",
+    "expected_evidence": ["VE Hybrid 8", "HomeCell 15", "4.2"]
+  },
+  {
+    "question": "Is HomeCell 20 compatible with VE Hybrid 8?",
+    "expected_route": "structured_lookup",
+    "expected_sources": ["SRC-001"],
+    "required_authoritative_source": "SRC-001",
+    "expected_evidence": ["no applicable compatibility rule"]
+  },
+  {
+    "question": "Can unsupported third-party control equipment be assumed to allow advanced energy-management functions?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-002", "SRC-004"],
+    "expected_evidence": ["unsupported third-party", "technical review", "must not"]
+  }
+]

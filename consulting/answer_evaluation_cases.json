@@ -1,0 +1,390 @@
+[
+  {
+    "case_id": "ANS-001",
+    "question": "Is VE Hybrid 8 compatible with HomeCell 15 on firmware 4.2?",
+    "category": "structured",
+    "expected_route": "structured_lookup",
+    "expected_status": "completed",
+    "required_domains": ["KD-002", "KD-003"],
+    "required_authoritative_source_ids": ["SRC-001"]
+  },
+  {
+    "case_id": "ANS-002",
+    "question": "Is VE Hybrid 8 compatible with HomeCell 15 on firmware 4.1?",
+    "category": "structured",
+    "expected_route": "structured_lookup",
+    "expected_status": "completed",
+    "required_domains": ["KD-002", "KD-003"],
+    "required_authoritative_source_ids": ["SRC-001"],
+    "required_answer_concepts": ["firmware below minimum required version"]
+  },
+  {
+    "case_id": "ANS-003",
+    "question": "Is HomeCell 15 compatible with my inverter?",
+    "category": "structured",
+    "expected_route": "structured_lookup",
+    "expected_status": "clarification_needed",
+    "required_domains": ["KD-002"],
+    "required_authoritative_source_ids": ["SRC-001"],
+    "required_missing_information": ["inverter_model", "firmware_version"]
+  },
+  {
+    "case_id": "ANS-004",
+    "question": "Does HomeCell 15 work with VE Hybrid 8 if the firmware version is 4.2.0?",
+    "category": "structured",
+    "expected_route": "structured_lookup",
+    "expected_status": "completed",
+    "required_domains": ["KD-002", "KD-003"],
+    "required_authoritative_source_ids": ["SRC-001"]
+  },
+  {
+    "case_id": "ANS-005",
+    "question": "What is required for PV-surplus charging with ChargeOne 11?",
+    "category": "rag_complete",
+    "expected_route": "rag",
+    "expected_status": "completed",
+    "expected_answer_completeness": "complete",
+    "required_domains": ["KD-010", "KD-009"],
+    "required_authoritative_source_ids": ["SRC-004"],
+    "required_answer_concepts": [
+      "EnergyHub integration is required",
+      "household meter data",
+      "PV-generation data",
+      "charger must be commissioned"
+    ],
+    "required_evidence_concepts": [
+      "valid household meter data",
+      "valid PV-generation data"
+    ]
+  },
+  {
+    "case_id": "ANS-006",
+    "question": "Can ChargeOne 11 provide standard charging without EnergyHub?",
+    "category": "rag_complete",
+    "expected_route": "rag",
+    "expected_status": "completed",
+    "expected_answer_completeness": "complete",
+    "required_domains": ["KD-012", "KD-011"],
+    "required_authoritative_source_ids": ["SRC-003"],
+    "required_answer_concepts": [
+      "standard charging can work without EnergyHub"
+    ],
+    "forbidden_claims": [
+      "coordinated charging works without EnergyHub"
+    ]
+  },
+  {
+    "case_id": "ANS-007",
+    "question": "Does loss of communication with EnergyHub stop basic charging?",
+    "category": "rag_complete",
+    "expected_route": "rag",
+    "expected_status": "completed",
+    "expected_answer_completeness": "complete",
+    "required_domains": ["KD-011"],
+    "required_authoritative_source_ids": ["SRC-003"],
+    "required_answer_concepts": [
+      "basic charging remains available",
+      "coordinated functions may become unavailable"
+    ]
+  },
+  {
+    "case_id": "ANS-008",
+    "question": "What data must EnergyHub receive before coordinated charging is activated?",
+    "category": "rag_complete",
+    "expected_route": "rag",
+    "expected_status": "completed",
+    "expected_answer_completeness": "complete",
+    "required_domains": ["KD-009"],
+    "required_authoritative_source_ids": ["SRC-004"],
+    "required_answer_concepts": [
+      "valid household meter data",
+      "valid PV-generation data"
+    ],
+    "required_evidence_concepts": [
+      "valid household meter data",
+      "valid PV-generation data"
+    ]
+  },
+  {
+    "case_id": "ANS-009",
+    "question": "What are the warranty conditions for an unauthorized third-party modification?",
+    "category": "rag_complete",
+    "expected_route": "rag",
+    "expected_status": "completed",
+    "expected_answer_completeness": "complete",
+    "required_domains": ["KD-017", "KD-020"],
+    "required_authoritative_source_ids": ["SRC-005"],
+    "required_answer_concepts": [
+      "may affect warranty eligibility",
+      "must not assume coverage",
+      "authoritative review may be required"
+    ],
+    "forbidden_claims": [
+      "unauthorized modification automatically voids the warranty",
+      "warranty is void"
+    ]
+  },
+  {
+    "case_id": "ANS-010",
+    "question": "What retrofit requirements apply when adding HomeCell 15 to an existing VE Hybrid 8 installation?",
+    "category": "rag_partial",
+    "expected_route": "rag",
+    "expected_status": "partial",
+    "expected_answer_completeness": "partial",
+    "required_domains": ["KD-007"],
+    "required_authoritative_source_ids": ["SRC-002", "SRC-003"],
+    "required_unresolved_dependencies": [
+      {
+        "type": "structured_dependency",
+        "subject_contains": "compatibility",
+        "authority_source_ids": ["SRC-001"],
+        "blocking": true
+      },
+      {
+        "type": "structured_dependency",
+        "subject_contains": "firmware",
+        "authority_source_ids": ["SRC-001"],
+        "blocking": true
+      }
+    ],
+    "required_answer_concepts": [
+      "verify inverter firmware",
+      "check wiring and metering",
+      "commissioning sequence",
+      "unsupported configuration requires review",
+      "compatibility must be resolved separately"
+    ],
+    "forbidden_claims": [
+      "VE Hybrid 8 is compatible with HomeCell 15",
+      "required firmware is 4.2"
+    ]
+  },
+  {
+    "case_id": "ANS-011",
+    "question": "What warranty conditions apply when modifying an existing VE Hybrid 8 system to add HomeCell 15?",
+    "category": "composite",
+    "expected_route": "composite",
+    "expected_status": "clarification_needed",
+    "required_domains": ["KD-017", "KD-002", "KD-007"],
+    "required_subroutes": [
+      {
+        "domain": "KD-017",
+        "expected_route": "rag",
+        "expected_status": "partial",
+        "expected_answer_completeness": "partial",
+        "required_authoritative_source_ids": ["SRC-005"],
+        "required_answer_concepts": [
+          "installation and commissioning must follow approved instructions",
+          "unauthorized or unsupported modifications may affect eligibility",
+          "definitive case-specific coverage is not established"
+        ],
+        "required_unresolved_dependencies": [
+          {
+            "type": "review_dependency",
+            "subject_contains": "coverage",
+            "authority_source_ids": ["SRC-005"],
+            "blocking": true
+          }
+        ],
+        "forbidden_claims": [
+          "this exact installation is covered",
+          "this exact installation is not covered"
+        ]
+      },
+      {
+        "domain": "KD-002",
+        "expected_route": "structured_lookup",
+        "expected_status": "clarification_needed",
+        "required_missing_information": ["firmware_version"]
+      },
+      {
+        "domain": "KD-007",
+        "expected_route": "rag",
+        "expected_status": "partial",
+        "expected_answer_completeness": "partial",
+        "required_unresolved_dependencies": [
+          {
+            "type": "structured_dependency",
+            "subject_contains": "compatibility",
+            "authority_source_ids": ["SRC-001"],
+            "blocking": true
+          },
+          {
+            "type": "structured_dependency",
+            "subject_contains": "firmware",
+            "authority_source_ids": ["SRC-001"],
+            "blocking": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "case_id": "ANS-012",
+    "question": "Can I add HomeCell 15 to my VE Hybrid 8 system, and will that affect my warranty?",
+    "category": "composite",
+    "expected_route": "composite",
+    "expected_status": "clarification_needed",
+    "required_domains": ["KD-017", "KD-002", "KD-007"],
+    "required_missing_information": ["firmware_version"],
+    "required_subroutes": [
+      {
+        "domain": "KD-017",
+        "expected_route": "rag",
+        "expected_status": "partial",
+        "expected_answer_completeness": "partial"
+      },
+      {
+        "domain": "KD-002",
+        "expected_route": "structured_lookup",
+        "expected_status": "clarification_needed",
+        "required_missing_information": ["firmware_version"]
+      },
+      {
+        "domain": "KD-007",
+        "expected_route": "rag",
+        "expected_status": "partial",
+        "expected_answer_completeness": "partial"
+      }
+    ],
+    "forbidden_claims": [
+      "full question resolved",
+      "compatibility confirmed from narrative docs"
+    ]
+  },
+  {
+    "case_id": "ANS-013",
+    "question": "Can I add HomeCell 15 to my VE Hybrid 8 system, and what retrofit checks apply?",
+    "category": "composite",
+    "expected_route": "composite",
+    "expected_status": "clarification_needed",
+    "required_domains": ["KD-002", "KD-007"],
+    "required_missing_information": ["firmware_version"],
+    "required_subroutes": [
+      {
+        "domain": "KD-002",
+        "expected_route": "structured_lookup",
+        "expected_status": "clarification_needed",
+        "required_missing_information": ["firmware_version"]
+      },
+      {
+        "domain": "KD-007",
+        "expected_route": "rag",
+        "expected_status": "partial",
+        "expected_answer_completeness": "partial"
+      }
+    ]
+  },
+  {
+    "case_id": "ANS-014",
+    "question": "What is the exact warranty duration in years for a VE Hybrid 8 with HomeCell 15?",
+    "category": "abstention",
+    "expected_route": "rag",
+    "expected_status": "insufficient_evidence",
+    "expected_answer_completeness": "none",
+    "required_domains": ["KD-017"],
+    "required_authoritative_source_ids": ["SRC-005"],
+    "forbidden_claims": [
+      "2 years",
+      "5 years",
+      "10 years"
+    ]
+  },
+  {
+    "case_id": "ANS-015",
+    "question": "What monetary remedy applies if a HomeCell 15 retrofit fails under warranty?",
+    "category": "abstention",
+    "expected_route": "rag",
+    "expected_status": "insufficient_evidence",
+    "expected_answer_completeness": "none",
+    "required_domains": ["KD-017"],
+    "required_authoritative_source_ids": ["SRC-005"],
+    "forbidden_claims": [
+      "refund",
+      "replacement",
+      "compensation"
+    ]
+  },
+  {
+    "case_id": "ANS-016",
+    "question": "Will an undocumented third-party controller definitely work with the system and remain under warranty?",
+    "category": "escalation",
+    "expected_route": "needs_review",
+    "expected_status": "needs_review",
+    "required_domains": ["KD-017", "KD-020"],
+    "forbidden_claims": [
+      "yes",
+      "no"
+    ]
+  },
+  {
+    "case_id": "ANS-017",
+    "question": "Can unsupported third-party control equipment be assumed to allow advanced energy-management functions?",
+    "category": "rag_complete",
+    "expected_route": "rag",
+    "expected_status": "completed",
+    "expected_answer_completeness": "complete",
+    "required_domains": ["KD-020", "KD-022"],
+    "required_authoritative_source_ids": ["SRC-002", "SRC-003", "SRC-004", "SRC-005"],
+    "required_answer_concepts": [
+      "cannot be assumed",
+      "technical review"
+    ],
+    "forbidden_claims": [
+      "safe to assume",
+      "guaranteed to allow advanced energy-management functions",
+      "approved unsupported configuration"
+    ]
+  },
+  {
+    "case_id": "ANS-018",
+    "question": "The battery installation guide lists HomeCell 15, so it must be compatible with every VoltEdge hybrid inverter, correct?",
+    "category": "authority_trap",
+    "expected_route": "structured_lookup",
+    "expected_status": "clarification_needed",
+    "required_domains": ["KD-002"],
+    "required_authoritative_source_ids": ["SRC-001"],
+    "required_missing_information": ["inverter_model", "firmware_version"],
+    "forbidden_claims": [
+      "compatible with every VoltEdge hybrid inverter"
+    ],
+    "forbidden_authority_claims": [
+      {
+        "subject_contains": "compatibility",
+        "forbidden_source_ids": ["SRC-002", "SRC-003", "SRC-004", "SRC-005"]
+      }
+    ]
+  },
+  {
+    "case_id": "ANS-019",
+    "question": "Since the retrofit guide says to check firmware, that means VE Hybrid 8 requires firmware 4.2, right?",
+    "category": "authority_trap",
+    "expected_route": "structured_lookup",
+    "expected_status": "clarification_needed",
+    "required_domains": ["KD-003"],
+    "required_authoritative_source_ids": ["SRC-001"],
+    "required_missing_information": ["battery_model"],
+    "forbidden_claims": [
+      "VE Hybrid 8 requires firmware 4.2"
+    ]
+  },
+  {
+    "case_id": "ANS-020",
+    "question": "Does an unauthorized modification void the warranty?",
+    "category": "modal_trap",
+    "expected_route": "rag",
+    "expected_status": "completed",
+    "expected_answer_completeness": "complete",
+    "required_domains": ["KD-017"],
+    "required_authoritative_source_ids": ["SRC-005"],
+    "required_answer_concepts": [
+      "may affect warranty eligibility",
+      "must not assume coverage",
+      "review may be required"
+    ],
+    "forbidden_claims": [
+      "warranty is void",
+      "always voids warranty"
+    ]
+  }
+]

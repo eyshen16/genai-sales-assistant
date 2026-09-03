@@ -1,0 +1,14 @@
+.env
+.venv/
+.vendor/
+.git/
+__pycache__/
+*.pyc
+.DS_Store
+tests/
+consulting/answer_evaluation_cases.json
+consulting/retrieval_evaluation_cases.json
+consulting/evaluation_plan.md
+consulting/escalation_rules.md
+consulting/retrieval_policy.md
+consulting/source_of_truth_mapping.md

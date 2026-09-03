@@ -1,0 +1,5 @@
+inverter_model,battery_model,min_firmware,max_battery_capacity_kwh,region,status,lifecycle_status,effective_from
+VE Hybrid 8,HomeCell 10,4.0,10,DE,approved,current,2026-01-01
+VE Hybrid 8,HomeCell 15,4.2,15,DE,approved,current,2026-07-01
+VE Hybrid 12,HomeCell 10,4.0,10,DE,approved,current,2026-01-01
+VE Hybrid 12,HomeCell 15,4.1,15,DE,approved,current,2026-04-01

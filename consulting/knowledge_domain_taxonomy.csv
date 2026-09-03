@@ -1,0 +1,23 @@
+﻿domain_id,knowledge_domain,description,typical_owner,routing_hints
+KD-001,Product specifications,Technical product characteristics and rated values,Product Management / Product Engineering,
+KD-002,Product compatibility,Approved combinations between products and required compatibility conditions,Product Engineering / System Engineering,compatibility; compatible; approved combination; works with
+KD-003,Firmware requirements,Minimum or required firmware versions for supported configurations,Product Engineering,firmware; minimum firmware; firmware version; on firmware
+KD-004,Installation prerequisites,Conditions that must be met before installation,Product Engineering / Technical Documentation,installation prerequisite; before installation; install requirements
+KD-005,Installation procedure,Steps and instructions for physical installation,Product Engineering / Technical Documentation,
+KD-006,Commissioning,Steps required to activate and verify a system after installation,Product Engineering / Technical Documentation,commissioning; commission; activate and verify
+KD-007,Retrofit requirements,Requirements and constraints when adding products to an existing installation,Product Engineering / System Engineering,retrofit; existing installation; add to my system; adding a battery
+KD-008,System integration,Rules and prerequisites for coordinated operation across multiple products,System Engineering,system integration; integrate with; coordinated operation
+KD-009,Energy-management behavior,"How the system coordinates PV, battery, household load, and EV charging",System Engineering,pv-surplus charging; energy management; coordinated charging; charging behavior
+KD-010,Metering requirements,Required measurement points and data inputs,System Engineering,metering; meter data; measurement points; pv-generation data
+KD-011,Connectivity and communication,Communication prerequisites and device connectivity,System Engineering,communication; connectivity; reachable; connection status; without energyhub; loss of communication; not connected
+KD-012,Operating modes,Supported operating modes and associated prerequisites,Product Management / System Engineering,operating mode; mode; supported mode; standard charging; basic charging
+KD-013,Troubleshooting and error handling,"Known errors, diagnostic guidance, and corrective actions",Service / Technical Support,
+KD-014,Maintenance,"Inspection, service, and maintenance requirements",Service / Product Engineering,
+KD-015,Safety requirements,Safety-critical installation and operating requirements,Product Engineering / Regulatory,
+KD-016,Regional compliance,Market-specific regulatory and compliance requirements,Regulatory / Local Market,
+KD-017,Warranty conditions,"Warranty scope, exclusions, eligibility, and duration",Legal / Product Management,warranty; coverage; eligibility; exclusion; covered
+KD-018,Product availability,Regional availability and launch status,Product Management / Sales Operations,
+KD-019,Product lifecycle,"Current, superseded, discontinued, and end-of-life product status",Product Management,
+KD-020,Third-party equipment limitations,Restrictions related to unsupported third-party equipment,System Engineering,third-party equipment; third-party controller; unsupported integration; unsupported configuration
+KD-021,Commercial and sales guidance,"Positioning, use cases, and customer-facing sales guidance",Product Marketing / Sales Enablement,
+KD-022,Technical escalation,Conditions requiring review by Product Engineering or Technical Support,Technical Support / Product Engineering,technical review; escalation; unsupported; cannot be determined
