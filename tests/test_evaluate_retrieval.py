@@ -4,6 +4,7 @@ import sys
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest.mock import patch
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -14,10 +15,12 @@ if str(SRC_ROOT) not in sys.path:
 from evaluate_retrieval import (
     classify_retrieval_case,
     compute_explicit_evidence_coverage,
+    find_expected_section_rank,
     load_evaluation_cases,
     match_expected_evidence,
     predict_route,
     run_retrieval_evaluation,
+    run_retrieval_mode_comparison,
 )
 from retrieve import DEFAULT_RETRIEVAL_TOP_K
 
@@ -29,6 +32,8 @@ class EvaluateRetrievalTests(unittest.TestCase):
         self.assertGreaterEqual(len(cases), 12)
         self.assertTrue(all(case.question for case in cases))
         self.assertTrue(all(case.expected_route for case in cases))
+        ranking_cases = [case for case in cases if case.expected_sections]
+        self.assertEqual(len(ranking_cases), 3)
 
     def test_predict_route_marks_compatibility_questions_as_structured_lookup(self) -> None:
         route = predict_route("Ist HomeCell 15 mit VE Hybrid 8 kompatibel?")
@@ -99,6 +104,33 @@ class EvaluateRetrievalTests(unittest.TestCase):
 
     def test_evaluation_uses_shared_default_top_k(self) -> None:
         self.assertEqual(DEFAULT_RETRIEVAL_TOP_K, 6)
+
+    def test_expected_section_rank_requires_expected_source_and_section(self) -> None:
+        rank = find_expected_section_rank(
+            retrieval_results=[
+                {"source_id": "SRC-OTHER", "section": "Commissioning"},
+                {"source_id": "SRC-003", "section": "Commissioning"},
+            ],
+            expected_sources=["SRC-003"],
+            expected_sections=["Commissioning"],
+        )
+
+        self.assertEqual(rank, 2)
+
+    def test_mode_comparison_reuses_one_index_for_all_modes(self) -> None:
+        sentinel_index = object()
+        with (
+            patch("evaluate_retrieval.ingest_and_build_index", return_value=sentinel_index) as build,
+            patch("evaluate_retrieval.run_retrieval_evaluation") as run,
+        ):
+            run.side_effect = lambda **kwargs: {"mode": kwargs["retrieval_mode"]}
+
+            reports = run_retrieval_mode_comparison(project_root=PROJECT_ROOT)
+
+        build.assert_called_once()
+        self.assertEqual(set(reports), {"semantic", "lexical", "hybrid"})
+        self.assertEqual(run.call_count, 3)
+        self.assertTrue(all(call.kwargs["retrieval_index"] is sentinel_index for call in run.call_args_list))
 
 
 if __name__ == "__main__":

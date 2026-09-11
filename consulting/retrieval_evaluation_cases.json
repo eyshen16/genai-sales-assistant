@@ -93,5 +93,29 @@
     "expected_route": "semantic_retrieval",
     "expected_sources": ["SRC-002", "SRC-004"],
     "expected_evidence": ["unsupported third-party", "technical review", "must not"]
+  },
+  {
+    "question": "What does the guide say about ChargeOne 11 fallback mode?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-003"],
+    "required_authoritative_source": "SRC-003",
+    "expected_evidence": ["does not prevent basic charging"],
+    "expected_sections": ["6. Communication Requirements"]
+  },
+  {
+    "question": "What is required before handover when ChargeOne 11 has unresolved communication errors?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-003"],
+    "required_authoritative_source": "SRC-003",
+    "expected_evidence": ["must not be handed over", "unresolved communication errors"],
+    "expected_sections": ["7. Commissioning"]
+  },
+  {
+    "question": "When do unvalidated data sources require technical review?",
+    "expected_route": "semantic_retrieval",
+    "expected_sources": ["SRC-004"],
+    "required_authoritative_source": "SRC-004",
+    "expected_evidence": ["unvalidated data sources", "technical review"],
+    "expected_sections": ["9. Retrofit and Third-Party Equipment"]
   }
 ]

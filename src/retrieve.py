@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+import math
 from pathlib import Path
+import re
 from typing import Any
 
 import numpy as np
@@ -15,6 +17,11 @@ DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 # Selected empirically for the current synthetic corpus based on k-sensitivity
 # testing. Re-evaluate if the corpus size or composition changes.
 DEFAULT_RETRIEVAL_TOP_K = 6
+DEFAULT_RETRIEVAL_MODE = "semantic"
+ALLOWED_RETRIEVAL_MODES = {"semantic", "lexical", "hybrid"}
+BM25_K1 = 1.5
+BM25_B = 0.75
+RRF_K = 60
 
 
 @dataclass(frozen=True)
@@ -64,12 +71,15 @@ def retrieve_relevant_chunks(
     top_k: int = DEFAULT_RETRIEVAL_TOP_K,
     authoritative_source_ids: list[str] | None = None,
     include_diagnostics: bool = False,
+    retrieval_mode: str = DEFAULT_RETRIEVAL_MODE,
 ) -> list[dict[str, Any]] | dict[str, Any]:
     normalized_query = query.strip()
     if not normalized_query:
         raise ValueError("Query must not be empty.")
     if top_k <= 0:
         raise ValueError("top_k must be positive.")
+    if retrieval_mode not in ALLOWED_RETRIEVAL_MODES:
+        raise ValueError(f"Unsupported retrieval mode: {retrieval_mode}")
     if not index.chunks:
         empty_result: list[dict[str, Any]] = []
         if include_diagnostics:
@@ -78,12 +88,11 @@ def retrieve_relevant_chunks(
                 "requested_authoritative_source_ids": list(authoritative_source_ids or []),
                 "retrieved_authoritative_source_ids": [],
                 "authority_gap": bool(authoritative_source_ids),
+                "retrieval_mode": retrieval_mode,
             }
         return empty_result
 
-    embedder = TextEmbedding(model_name=index.model_name)
-    query_embedding = np.vstack(list(embedder.embed([normalized_query]))).astype(np.float32)[0]
-    scores = cosine_similarity(query_embedding=query_embedding, document_embeddings=index.embeddings)
+    scores = _retrieval_scores(query=normalized_query, index=index, retrieval_mode=retrieval_mode)
 
     requested_authoritative_ids = list(dict.fromkeys(authoritative_source_ids or []))
     ranked_indices = _assemble_ranked_indices(
@@ -118,7 +127,92 @@ def retrieve_relevant_chunks(
         "requested_authoritative_source_ids": requested_authoritative_ids,
         "retrieved_authoritative_source_ids": retrieved_authoritative_source_ids,
         "authority_gap": authority_gap,
+        "retrieval_mode": retrieval_mode,
     }
+
+
+def _retrieval_scores(*, query: str, index: RetrievalIndex, retrieval_mode: str) -> np.ndarray:
+    if retrieval_mode == "lexical":
+        return bm25_scores(query=query, chunks=index.chunks)
+
+    embedder = TextEmbedding(model_name=index.model_name)
+    query_embedding = np.vstack(list(embedder.embed([query]))).astype(np.float32)[0]
+    dense_scores = cosine_similarity(query_embedding=query_embedding, document_embeddings=index.embeddings)
+    if retrieval_mode == "semantic":
+        return dense_scores
+
+    lexical_scores = bm25_scores(query=query, chunks=index.chunks)
+    return reciprocal_rank_fusion(
+        [dense_scores, lexical_scores],
+        candidate_masks=[None, lexical_scores > 0],
+        rrf_k=RRF_K,
+    )
+
+
+def tokenize_for_lexical_retrieval(text: str) -> list[str]:
+    """Tokenize deterministically while retaining identifiers and versions."""
+    tokens: list[str] = []
+    for token in re.findall(r"[a-z0-9]+(?:[.-][a-z0-9]+)*", text.casefold()):
+        tokens.append(token)
+        if "-" in token:
+            tokens.extend(part for part in token.split("-") if part)
+    return tokens
+
+
+def bm25_scores(
+    *, query: str, chunks: list[dict[str, str]], k1: float = BM25_K1, b: float = BM25_B,
+) -> np.ndarray:
+    if not chunks:
+        return np.empty(0, dtype=np.float32)
+    documents = [tokenize_for_lexical_retrieval(_chunk_text_for_embedding(chunk)) for chunk in chunks]
+    query_tokens = list(dict.fromkeys(tokenize_for_lexical_retrieval(query)))
+    document_lengths = [len(document) for document in documents]
+    average_length = sum(document_lengths) / len(document_lengths) if document_lengths else 0.0
+    document_frequency = {
+        token: sum(token in set(document) for document in documents)
+        for token in query_tokens
+    }
+    scores = np.zeros(len(documents), dtype=np.float32)
+    for index, document in enumerate(documents):
+        frequencies = {token: document.count(token) for token in query_tokens}
+        for token in query_tokens:
+            frequency = frequencies[token]
+            if not frequency:
+                continue
+            frequency_in_documents = document_frequency[token]
+            inverse_document_frequency = math.log(
+                1 + (len(documents) - frequency_in_documents + 0.5) / (frequency_in_documents + 0.5)
+            )
+            length_normalization = 1 - b + b * document_lengths[index] / max(average_length, 1e-12)
+            scores[index] += inverse_document_frequency * (
+                frequency * (k1 + 1) / (frequency + k1 * length_normalization)
+            )
+    return scores
+
+
+def reciprocal_rank_fusion(
+    score_sets: list[np.ndarray],
+    *,
+    candidate_masks: list[np.ndarray | None] | None = None,
+    rrf_k: int = RRF_K,
+) -> np.ndarray:
+    if not score_sets:
+        return np.empty(0, dtype=np.float32)
+    if rrf_k <= 0:
+        raise ValueError("rrf_k must be positive.")
+    size = len(score_sets[0])
+    if any(len(scores) != size for scores in score_sets):
+        raise ValueError("All score sets must have the same length.")
+    masks = candidate_masks or [None] * len(score_sets)
+    if len(masks) != len(score_sets):
+        raise ValueError("candidate_masks must align with score_sets.")
+    fused = np.zeros(size, dtype=np.float32)
+    for scores, mask in zip(score_sets, masks):
+        candidates = range(size) if mask is None else np.flatnonzero(mask)
+        ranked = sorted(candidates, key=lambda index: (-float(scores[index]), int(index)))
+        for rank, index in enumerate(ranked, start=1):
+            fused[index] += 1.0 / (rrf_k + rank)
+    return fused
 
 
 def cosine_similarity(

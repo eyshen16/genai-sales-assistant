@@ -7,6 +7,8 @@ import unittest
 from datetime import date
 from pathlib import Path
 
+import numpy as np
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -15,13 +17,107 @@ if str(SRC_ROOT) not in sys.path:
 
 from retrieve import (
     DEFAULT_EMBEDDING_MODEL,
+    RetrievalIndex,
+    bm25_scores,
     build_retrieval_index,
     ingest_and_build_index,
+    reciprocal_rank_fusion,
     retrieve_relevant_chunks,
+    tokenize_for_lexical_retrieval,
 )
 
 
 class RetrieveTests(unittest.TestCase):
+    def test_lexical_tokenization_preserves_identifiers_and_versions(self) -> None:
+        tokens = tokenize_for_lexical_retrieval("ChargeOne 11 uses PV-surplus mode on firmware 4.2.0.")
+
+        self.assertIn("chargeone", tokens)
+        self.assertIn("11", tokens)
+        self.assertIn("pv-surplus", tokens)
+        self.assertIn("pv", tokens)
+        self.assertIn("surplus", tokens)
+        self.assertIn("4.2.0", tokens)
+
+    def test_bm25_prioritizes_exact_identifier_and_version_tokens(self) -> None:
+        chunks = [
+            self._chunk(
+                source_id="SRC-A",
+                section="General Charging",
+                text="General charging behavior applies to supported devices.",
+            ),
+            self._chunk(
+                source_id="SRC-B",
+                section="Firmware 4.2.0",
+                text="ChargeOne 11 requires firmware 4.2.0 for this operating mode.",
+            ),
+        ]
+
+        scores = bm25_scores(query="ChargeOne 11 firmware 4.2.0", chunks=chunks)
+
+        self.assertGreater(scores[1], scores[0])
+
+    def test_lexical_retrieval_is_deterministic_unique_and_respects_top_k(self) -> None:
+        chunks = [
+            self._chunk(source_id="SRC-A", section="A", text="fallback charging mode"),
+            self._chunk(source_id="SRC-B", section="B", text="charging requirements"),
+            self._chunk(source_id="SRC-C", section="C", text="battery installation"),
+        ]
+        index = RetrievalIndex(
+            model_name=DEFAULT_EMBEDDING_MODEL,
+            chunks=chunks,
+            embeddings=np.zeros((3, 2), dtype=np.float32),
+        )
+
+        first = retrieve_relevant_chunks(
+            query="fallback charging", index=index, top_k=2, retrieval_mode="lexical"
+        )
+        second = retrieve_relevant_chunks(
+            query="fallback charging", index=index, top_k=2, retrieval_mode="lexical"
+        )
+
+        self.assertEqual(
+            [(item["source_id"], item["section"]) for item in first],
+            [(item["source_id"], item["section"]) for item in second],
+        )
+        self.assertEqual(len(first), 2)
+        self.assertEqual(len({(item["source_id"], item["section"]) for item in first}), 2)
+        self.assertEqual(first[0]["source_id"], "SRC-A")
+
+    def test_rrf_combines_rankings_and_ignores_masked_zero_score_candidates(self) -> None:
+        dense = np.array([0.9, 0.8, 0.1], dtype=np.float32)
+        lexical = np.array([0.0, 1.0, 0.0], dtype=np.float32)
+
+        fused = reciprocal_rank_fusion(
+            [dense, lexical],
+            candidate_masks=[None, lexical > 0],
+        )
+
+        self.assertGreater(fused[1], fused[0])
+        self.assertGreater(fused[0], fused[2])
+
+    def test_lexical_authority_reservation_keeps_configured_source_in_top_k(self) -> None:
+        chunks = [
+            self._chunk(source_id="SRC-SUPPORT", section="Support", text="fallback fallback mode"),
+            self._chunk(source_id="SRC-AUTH", section="Authority", text="basic charging remains available"),
+        ]
+        index = RetrievalIndex(
+            model_name=DEFAULT_EMBEDDING_MODEL,
+            chunks=chunks,
+            embeddings=np.zeros((2, 2), dtype=np.float32),
+        )
+
+        result = retrieve_relevant_chunks(
+            query="fallback mode",
+            index=index,
+            top_k=1,
+            authoritative_source_ids=["SRC-AUTH"],
+            include_diagnostics=True,
+            retrieval_mode="lexical",
+        )
+
+        self.assertEqual(result["chunks"][0]["source_id"], "SRC-AUTH")
+        self.assertFalse(result["authority_gap"])
+
     def test_chargeone_pv_surplus_query_returns_chargeone_and_energyhub_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = self._write_retrieval_project(Path(tmpdir))
@@ -154,16 +250,19 @@ class RetrieveTests(unittest.TestCase):
         ]
 
         index = build_retrieval_index(chunks=chunks, model_name=DEFAULT_EMBEDDING_MODEL)
-        result = retrieve_relevant_chunks(
-            query="What warranty conditions apply to this modification?",
-            index=index,
-            top_k=1,
-            authoritative_source_ids=["SRC-005"],
-            include_diagnostics=True,
-        )
+        for mode in ("semantic", "lexical", "hybrid"):
+            with self.subTest(mode=mode):
+                result = retrieve_relevant_chunks(
+                    query="What warranty conditions apply to this modification?",
+                    index=index,
+                    top_k=1,
+                    authoritative_source_ids=["SRC-005"],
+                    include_diagnostics=True,
+                    retrieval_mode=mode,
+                )
 
-        self.assertEqual(result["chunks"][0]["source_id"], "SRC-005")
-        self.assertFalse(result["authority_gap"])
+                self.assertEqual(result["chunks"][0]["source_id"], "SRC-005")
+                self.assertFalse(result["authority_gap"])
 
     def test_no_authoritative_ids_preserves_existing_behavior(self) -> None:
         chunks = [
@@ -241,16 +340,29 @@ class RetrieveTests(unittest.TestCase):
             model_name=DEFAULT_EMBEDDING_MODEL,
         )
 
-        result = retrieve_relevant_chunks(
-            query="Is VE Hybrid 8 compatible with HomeCell 15?",
-            index=index,
-            top_k=3,
-            authoritative_source_ids=["SRC-001"],
-            include_diagnostics=True,
+        for mode in ("semantic", "lexical", "hybrid"):
+            with self.subTest(mode=mode):
+                result = retrieve_relevant_chunks(
+                    query="Is VE Hybrid 8 compatible with HomeCell 15?",
+                    index=index,
+                    top_k=3,
+                    authoritative_source_ids=["SRC-001"],
+                    include_diagnostics=True,
+                    retrieval_mode=mode,
+                )
+
+                self.assertTrue(result["authority_gap"])
+                self.assertNotIn("SRC-001", [chunk["source_id"] for chunk in result["chunks"]])
+
+    def test_invalid_retrieval_mode_is_rejected(self) -> None:
+        index = RetrievalIndex(
+            model_name=DEFAULT_EMBEDDING_MODEL,
+            chunks=[self._chunk(source_id="SRC-A", section="A", text="text")],
+            embeddings=np.zeros((1, 2), dtype=np.float32),
         )
 
-        self.assertTrue(result["authority_gap"])
-        self.assertNotIn("SRC-001", [chunk["source_id"] for chunk in result["chunks"]])
+        with self.assertRaisesRegex(ValueError, "Unsupported retrieval mode"):
+            retrieve_relevant_chunks(query="text", index=index, retrieval_mode="unknown")
 
     def test_multiple_authoritative_sources_are_treated_as_one_pool_without_source_quotas(self) -> None:
         index = ingest_and_build_index(
@@ -276,6 +388,20 @@ class RetrieveTests(unittest.TestCase):
         self._write_registry(project_root)
         self._write_documents(project_root)
         return project_root
+
+    def _chunk(self, *, source_id: str, section: str, text: str) -> dict[str, str]:
+        return {
+            "source_id": source_id,
+            "source_name": source_id,
+            "source_path": f"data/documents/{source_id}.md",
+            "title": source_id,
+            "section": section,
+            "region": "DE",
+            "approval_status": "approved",
+            "lifecycle_status": "current",
+            "effective_date": "2026-01-01",
+            "text": text,
+        }
 
     def _write_registry(self, project_root: Path) -> None:
         consulting_dir = project_root / "consulting"
