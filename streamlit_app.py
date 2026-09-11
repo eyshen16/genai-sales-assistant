@@ -10,13 +10,24 @@ import streamlit as st
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
 QUERY_ENDPOINT = f"{API_BASE_URL}/query"
 HEALTH_ENDPOINT = f"{API_BASE_URL}/health"
-HTTP_TIMEOUT_SECONDS = 60
+HTTP_TIMEOUT_SECONDS = 120
 HEALTH_TIMEOUT_SECONDS = 3
 EXAMPLE_QUESTIONS = [
     "Is VE Hybrid 8 compatible with HomeCell 15 on firmware 4.2?",
     "What is required for PV-surplus charging with ChargeOne 11?",
     "Can I add HomeCell 15 to my VE Hybrid 8 system, and will that affect my warranty?",
 ]
+REQUIRED_QUERY_RESPONSE_FIELDS = {
+    "question",
+    "route",
+    "status",
+    "domains",
+    "result",
+    "subresults",
+    "missing_information",
+    "review_required",
+    "router_reason",
+}
 
 
 def call_health() -> bool:
@@ -33,6 +44,26 @@ def call_query(question: str) -> requests.Response:
         json={"question": question},
         timeout=HTTP_TIMEOUT_SECONDS,
     )
+
+
+def parse_query_response(response: requests.Response) -> Dict[str, Any]:
+    try:
+        payload = response.json()
+    except (requests.JSONDecodeError, ValueError) as exc:
+        raise ValueError("Backend response was not valid JSON.") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("Backend response must be a JSON object.")
+    if not REQUIRED_QUERY_RESPONSE_FIELDS.issubset(payload):
+        raise ValueError("Backend response did not match the expected API envelope.")
+    return payload
+
+
+def render_technical_error(message: str, response: requests.Response | None = None) -> None:
+    st.error(message)
+    if response is not None:
+        request_id = response.headers.get("X-Request-ID")
+        if request_id:
+            st.caption(f"Request reference: `{request_id}`")
 
 
 def render_status_banner(status: str, review_required: bool) -> None:
@@ -251,19 +282,16 @@ def render_payload(payload: Dict[str, Any]) -> None:
 def render_http_error(response: requests.Response) -> None:
     if response.status_code == 422:
         st.error("Please enter a non-empty question before submitting.")
-        with st.expander("Technical Details"):
-            st.write(response.json())
         return
 
     if response.status_code >= 500:
-        st.error("The backend returned a server error. Please try again after checking the local API.")
-        with st.expander("Technical Details"):
-            st.write(response.text)
+        render_technical_error(
+            "The backend returned a server error. Please try again later.",
+            response,
+        )
         return
 
     st.error(f"The backend returned an unexpected HTTP status: {response.status_code}.")
-    with st.expander("Technical Details"):
-        st.write(response.text)
 
 
 def main() -> None:
@@ -310,7 +338,15 @@ def main() -> None:
                 return
 
         if response.status_code == 200:
-            render_payload(response.json())
+            try:
+                payload = parse_query_response(response)
+            except ValueError:
+                render_technical_error(
+                    "The backend returned an unexpected response. Please try again later.",
+                    response,
+                )
+                return
+            render_payload(payload)
             return
 
         render_http_error(response)

@@ -13,6 +13,8 @@ from router import load_source_of_truth_mappings
 
 DEFAULT_GENERATION_MODEL = "gpt-5.6-terra"
 DEFAULT_REASONING_EFFORT = "low"
+OPENAI_TIMEOUT_SECONDS = 45.0
+OPENAI_MAX_RETRIES = 1
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DOTENV_PATH = PROJECT_ROOT / ".env"
 SOURCE_OF_TRUTH_MAPPING_PATH = PROJECT_ROOT / "consulting" / "source_of_truth_mapping.csv"
@@ -88,7 +90,10 @@ def generate_grounded_answer(
 ) -> dict[str, Any]:
     evidence_items = assign_evidence_ids(retrieved_chunks)
     load_project_dotenv()
-    openai_client = client or OpenAI()
+    openai_client = client or OpenAI(
+        timeout=OPENAI_TIMEOUT_SECONDS,
+        max_retries=OPENAI_MAX_RETRIES,
+    )
 
     response = openai_client.responses.parse(
         model=model,

@@ -17,6 +17,8 @@ import generate
 from generate import (
     DEFAULT_GENERATION_MODEL,
     DEFAULT_REASONING_EFFORT,
+    OPENAI_MAX_RETRIES,
+    OPENAI_TIMEOUT_SECONDS,
     UnresolvedPoint,
     assign_evidence_ids,
     detect_possible_modal_strengthening,
@@ -532,6 +534,34 @@ class GenerateTests(unittest.TestCase):
         call = client.responses.calls[0]
         self.assertEqual(call["model"], DEFAULT_GENERATION_MODEL)
         self.assertEqual(call["reasoning"]["effort"], DEFAULT_REASONING_EFFORT)
+
+    def test_default_openai_client_has_explicit_timeout_and_one_sdk_retry(self) -> None:
+        parsed_output = generate.GenerationModelOutput(
+            answer="Supported answer.",
+            citations=[
+                generate.Citation(
+                    evidence_id="E1",
+                    source_id="SRC-005",
+                    title="VoltEdge Residential Energy Warranty Policy - Germany",
+                    section="5. Third-Party Equipment and Unsupported Integrations",
+                )
+            ],
+            used_evidence=["E1"],
+            insufficient_evidence=False,
+            unresolved_points=[],
+        )
+        client = FakeOpenAIClient(parsed_output)
+
+        with patch.object(generate, "OpenAI", return_value=client) as client_factory:
+            generate_grounded_answer(
+                question="Do unsupported third-party integrations affect warranty eligibility?",
+                retrieved_chunks=self.retrieved_chunks,
+            )
+
+        client_factory.assert_called_once_with(
+            timeout=OPENAI_TIMEOUT_SECONDS,
+            max_retries=OPENAI_MAX_RETRIES,
+        )
 
     def test_validation_failure_cannot_be_promoted_to_partial(self) -> None:
         parsed_output = generate.GenerationModelOutput(
