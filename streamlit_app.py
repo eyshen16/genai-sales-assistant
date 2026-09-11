@@ -12,6 +12,7 @@ QUERY_ENDPOINT = f"{API_BASE_URL}/query"
 HEALTH_ENDPOINT = f"{API_BASE_URL}/health"
 HTTP_TIMEOUT_SECONDS = 120
 HEALTH_TIMEOUT_SECONDS = 3
+PRIVACY_NOTICE = "Prototype using synthetic product data. Do not enter personal, confidential, or customer information."
 EXAMPLE_QUESTIONS = [
     "Is VE Hybrid 8 compatible with HomeCell 15 on firmware 4.2?",
     "What is required for PV-surplus charging with ChargeOne 11?",
@@ -299,6 +300,7 @@ def main() -> None:
 
     st.title("GenAI Sales Assistant", anchor=False)
     st.write("Ask one product question at a time and inspect the governed result, evidence, and technical details.")
+    st.caption(PRIVACY_NOTICE)
 
     backend_ok = call_health()
     if backend_ok:

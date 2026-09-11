@@ -66,6 +66,19 @@ Ingestion admits only registered document sources whose metadata satisfies appro
 
 The synthetic source set contains one structured compatibility matrix and four governed documents covering battery installation, ChargeOne integration, EnergyHub integration, and warranty policy.
 
+## Security, Privacy, and Governance
+
+This prototype applies proportionate controls around its current scope; it is not presented as production security certification.
+
+| Maturity | Current state |
+|---|---|
+| Implemented | Deterministic compatibility and firmware ownership; governed source eligibility and authority resolution; schema-constrained model output; citation and evidence-ID validation; application-derived unresolved authority; runtime secret injection; request-ID logging without raw question or answer logging; `store=False` on production Responses API requests |
+| Partially addressed | Prompt injection is constrained by deterministic routing, evidence-only generation instructions, an explicit untrusted-content boundary, and output validation. These controls reduce risk but do not make model processing immune to adversarial content. |
+| Prototype limitations | No authentication, RBAC, PII detection/redaction, DLP, centralized secret manager or rotation, SIEM, security monitoring platform, formal audit trail, or implemented human escalation workflow |
+| Future production requirements | Identity and access control; customer-data classification and privacy governance; retention and external-provider review; managed secret lifecycle; security monitoring and audit controls |
+
+For model-based RAG responses, the user question and retrieved evidence required to answer it are sent to the configured external model provider. Structured compatibility lookups do not require an LLM call. The application does not persist query history, but users are instructed not to enter personal, confidential, or customer information; external-provider data handling still requires formal review before production use.
+
 ## RAG Pipeline
 
 ```mermaid

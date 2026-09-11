@@ -14,6 +14,14 @@ import streamlit_app
 
 
 class StreamlitAppTests(unittest.TestCase):
+    def test_privacy_notice_discourages_sensitive_input(self) -> None:
+        notice = streamlit_app.PRIVACY_NOTICE.lower()
+
+        self.assertIn("synthetic product data", notice)
+        self.assertIn("personal", notice)
+        self.assertIn("confidential", notice)
+        self.assertIn("customer information", notice)
+
     def test_parse_query_response_accepts_stable_api_envelope(self) -> None:
         payload = {
             "question": "Question",
