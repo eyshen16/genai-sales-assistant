@@ -304,7 +304,7 @@ def main() -> None:
 
     backend_ok = call_health()
     if backend_ok:
-        st.caption(f"Backend connected: {API_BASE_URL}")
+        st.caption("Backend connected")
     else:
         st.warning("Backend unavailable. Start the FastAPI service before submitting a question.")
 
