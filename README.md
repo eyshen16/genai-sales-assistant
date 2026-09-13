@@ -1,6 +1,6 @@
 # GenAI Sales Assistant
 
-A deployed, governed prototype for answering synthetic residential-energy product questions without treating every question as an open-ended LLM task.
+A deployed GenAI assistant prototype for technical sales in residential energy, separating deterministic product rules from governed document-grounded RAG.
 
 **[Open the live Railway demo](https://genai-sales-assistant-production.up.railway.app)**
 
@@ -114,7 +114,7 @@ Evidence below was re-run or read from committed artifacts on 11 September 2026.
 
 | Area | Verified evidence | Interpretation |
 |---|---|---|
-| Regression suite | **156 tests passed** with `.venv/bin/python -m unittest discover -s tests` | Covers routing, lookup, ingestion, retrieval, generation validation, orchestration, API, Streamlit helpers, evaluators, and experiments |
+| Regression suite | **160 tests passed** with `.venv/bin/python -m unittest discover -s tests` | Covers routing, lookup, ingestion, retrieval, generation validation, orchestration, API, Streamlit helpers, evaluators, and experiments |
 | Production retrieval baseline | **17 cases** total, **14 retrieval cases**; Source Hit@6 **100%**; Authoritative Source Hit@6 **100%**; explicit evidence coverage **96.43%**; **0 retrieval failures** | Semantic retrieval remains the production default |
 | Lexical / hybrid comparison | BM25 and RRF each produced **89.29%** explicit evidence coverage on the same frozen set | Both remain experimental; RRF was not promoted because it introduced an explicit-evidence regression |
 | Answer-level evaluation | A **20-case** executable evaluation set and deterministic/layered evaluator are implemented | Real generation runs are explicit because they incur API calls; no single generic "RAG accuracy" score is used |
