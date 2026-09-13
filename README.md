@@ -14,8 +14,6 @@ This project separates those responsibilities. It routes deterministic facts to 
 
 ## Demo Screenshots
 
-Grounded RAG response with visible citations, evidence, and route diagnostics.
-
 <table>
   <tr>
     <td width="50%">
