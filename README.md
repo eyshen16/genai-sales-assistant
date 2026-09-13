@@ -140,7 +140,7 @@ Evidence below was re-run or read from committed artifacts on 11 September 2026.
 | Lexical / hybrid comparison | BM25 and RRF each produced **89.29%** explicit evidence coverage on the same frozen set | Both remain experimental; RRF was not promoted because it introduced an explicit-evidence regression |
 | Answer-level evaluation | A **20-case** executable evaluation set and deterministic/layered evaluator are implemented | Real generation runs are explicit because they incur API calls; no single generic "RAG accuracy" score is used |
 | Tool-calling shadow evaluation | Persisted v2 report: **24 cases**, **10 gated cases**, **30 model attempts**, and **0 forbidden executions** | The overall frozen acceptance criteria still failed, so semantic tool selection is not in production `/query` |
-| CI | GitHub Actions workflow installs pinned dependencies and runs the complete test suite on pushes and pull requests to `main` | GitHub Actions runs the complete test suite on pushes and pull requests to main; the latest run on the public-release commit passed successfully. |
+| CI | GitHub Actions workflow installs pinned dependencies and runs the complete test suite on pushes and pull requests to `main` | The latest run on the public-release commit completed successfully. |
 | Deployment | Railway URL, Streamlit health, structured flow, RAG flow, and composite flow were verified remotely | The deployed prototype runs one container with Streamlit public and FastAPI container-local |
 
 The retrieval metrics use deterministic source, authority, and explicit-evidence checks. Lexical mismatches that may be semantically adequate are surfaced for review rather than automatically labeled retrieval failures.
