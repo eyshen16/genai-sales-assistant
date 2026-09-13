@@ -12,6 +12,29 @@ Sales and support questions do not all belong to the same authority. Product com
 
 This project separates those responsibilities. It routes deterministic facts to a governed compatibility matrix, uses retrieval-grounded generation for approved narrative sources, and exposes clarification, partial-answer, insufficient-evidence, and review states instead of guessing.
 
+## Demo Screenshots
+
+Grounded RAG response with visible citations, evidence, and route diagnostics.
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="rag-evidence-and-route.png" alt="Grounded RAG response with visible citations, evidence, and route diagnostics">
+    </td>
+    <td width="50%">
+      <img src="composite-overview.png" alt="Composite request handling with missing firmware information and partial results">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      Grounded RAG response with visible citations, evidence, and route diagnostics.
+    </td>
+    <td align="center">
+      Composite request handling that asks for missing firmware information while still returning useful partial results.
+    </td>
+  </tr>
+</table>
+
 ## Architecture
 
 ```mermaid
